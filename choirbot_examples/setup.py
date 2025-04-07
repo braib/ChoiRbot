@@ -26,6 +26,8 @@ setup(
 
         ('share/' + package_name + '/models/turtlebot3_burger', glob('models/turtlebot3_burger/*.sdf')),
         ('share/' + package_name + '/models/turtlebot3_waffle', glob('models/turtlebot3_waffle/*.sdf')),
+        ('share/' + package_name + '/models/turtlebot3_burger', glob('models/turtlebot3_burger_cam/*.urdf')),
+        ('share/' + package_name + '/models/turtlebot3_waffle', glob('models/turtlebot3_waffle_pi/*.urdf')),
 
 
 
