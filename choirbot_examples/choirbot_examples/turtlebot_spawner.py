@@ -28,8 +28,18 @@ def main():
     node.get_logger().info("...connected!")
 
     # Get path to the turtlebot3 model
+    # sdf_file_path = os.path.join(
+    #     get_package_share_directory("choirbot_examples"), "model_burger.sdf")
+
+    TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
+    model_folder = 'turtlebot3_' + TURTLEBOT3_MODEL
+
     sdf_file_path = os.path.join(
-        get_package_share_directory("choirbot_examples"), "model_burger.sdf")
+        get_package_share_directory('choirbot_examples'),
+        'models',
+        model_folder,
+        'model.sdf'
+    )
 
     # Set data for request
     request = SpawnEntity.Request()

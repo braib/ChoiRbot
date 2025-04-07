@@ -21,7 +21,15 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, glob('launch/*.launch.py')),
         ('share/' + package_name, glob('resource/*.rviz')),
-        ('share/' + package_name, glob('resource/*.sdf')),
+        # ('share/' + package_name, glob('models/turtlebot3_burger/*.sdf')),
+        # ('share/' + package_name, glob('models/turtlebot3_waffle/*.sdf')),
+
+        ('share/' + package_name + '/models/turtlebot3_burger', glob('models/turtlebot3_burger/*.sdf')),
+        ('share/' + package_name + '/models/turtlebot3_waffle', glob('models/turtlebot3_waffle/*.sdf')),
+
+
+
+
     ],
     install_requires=['setuptools', 'choirbot'],
     zip_safe=True,
