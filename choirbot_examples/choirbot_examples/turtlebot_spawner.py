@@ -33,10 +33,12 @@ def main():
 
     # TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
     
-    # model_folder = 'turtlebot3_' + TURTLEBOT3_MODEL
+    TURTLEBOT3_MODEL = 'burger_cam'
+
+    model_folder = 'turtlebot3_' + TURTLEBOT3_MODEL
     
     # model_folder = 'turtlebot3_waffle' 
-    model_folder = 'turtlebot3_burger'
+    # model_folder = 'turtlebot3_burger'
     # model_folder = 'turtlebot3_burger_cam'
     # model_folder = 'turtlebot3_waffle_pi'
 
