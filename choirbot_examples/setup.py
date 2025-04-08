@@ -45,7 +45,10 @@ setup(
             'choirbot_{0}_{1} = choirbot_examples.{0}.{1}:main'.format(package, file)
             for package, files in scripts.items() for file in files
         ] + [
-            'choirbot_turtlebot_spawner = choirbot_examples.turtlebot_spawner:main'
+            'choirbot_turtlebot_spawner = choirbot_examples.turtlebot_spawner:main',
+            'choirbot_turtlebot_burger_cam_spawner = choirbot_examples.turtlebot_burger_cam_spawner:main',
+            'choirbot_turtlebot_waffle_spawner = choirbot_examples.turtlebot_waffle_spawner:main',
+
         ],
     },
 )
