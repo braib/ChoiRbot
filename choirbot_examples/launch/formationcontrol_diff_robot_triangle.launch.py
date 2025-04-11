@@ -8,12 +8,17 @@ import numpy as np
 import sys
 import argparse
 import os
-
-
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import PathJoinSubstitution, TextSubstitution
 def generate_launch_description():
 
+    launch_file_dir = os.path.join(get_package_share_directory('choirbot_examples'), 'launch')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+    # TURTLEBOT3_MODEL_i = LaunchConfiguration('TURTLEBOT3_MODEL', default='burger_cam')
+
+
     # TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
-    TURTLEBOT3_MODEL = 'burger_cam'
+    # TURTLEBOT3_MODEL = 'burger_cam'
 
     L=3
     seed=5
@@ -64,14 +69,15 @@ def generate_launch_description():
     robot_launch = []       # launched after 10 sec (to let Gazebo open)
     launch_description = [] # launched immediately (will contain robot_launch)
 
+    robot_models = ['burger_cam', 'burger_cam', 'waffle']
+    remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
+
+    # included_launches = []
     # add executables for each robot
     for i in range(N):
 
-        if not i == N:
-            TURTLEBOT3_MODEL = 'burger_cam'
-        
-        if i == N-1:
-            TURTLEBOT3_MODEL = 'waffle'
+        robot_name = robot_models[i]
+
 
         in_neighbors  = np.nonzero(Adj[:, i])[0].tolist()
         out_neighbors = np.nonzero(Adj[i, :])[0].tolist()
@@ -82,22 +88,102 @@ def generate_launch_description():
         robot_launch.append(Node(
             package='choirbot_examples', executable='choirbot_formationcontrol_guidance', output='screen',
             namespace='agent_{}'.format(i),
-            parameters=[{'agent_id': i, 'N': N, 'in_neigh': in_neighbors, 'out_neigh': out_neighbors, 'weights': weights}]))
+            parameters=[{
+                'agent_id': i,
+                'N': N,
+                'in_neigh': in_neighbors,
+                'out_neigh': out_neighbors,
+                'weights': weights
+            }]))
         
         # controller
         robot_launch.append(Node(
             package='choirbot_examples', executable='choirbot_formationcontrol_controller', output='screen',
             namespace='agent_{}'.format(i),
-            parameters=[{'agent_id': i}]))
+            parameters=[{
+                'agent_id': i
+            }]))
+
+
+
+        #robot state publisher
+        # urdf_file_name = 'turtlebot3_' + robot_name + '.urdf'
         
+        # urdf_path = os.path.join(get_package_share_directory('choirbot_examples'), 'urdf', urdf_file_name)
+
+        # with open(urdf_path, 'r') as infp:
+        #     robot_desc = infp.read()
+
+        # robot_launch.append(Node(
+        #     package='robot_state_publisher',
+        #     executable='robot_state_publisher',
+        #     output='screen',
+        #     namespace='agent_{}'.format(i),
+        #     parameters=[{
+        #         'use_sim_time': use_sim_time,
+        #         'robot_description': robot_desc,
+        #         # 'robot_namespace': f'agent_{i}',
+        #         'frame_prefix': f'agent_{i}/'
+        #     }],
+        #     remappings=remappings,
+        #     # arguments=[urdf_path],
+        # ))
+        
+
+
+        # robot_launch.append(Node(
+        #     package="robot_state_publisher",
+        #     namespace='agent_{}'.format(i),
+        #     executable="robot_state_publisher",
+        #     output="screen",
+        #     parameters=[{
+        #         "use_sim_time": use_sim_time, 
+        #         "robot_description": robot_desc,
+        #         "frame_prefix": f"agent_{i}/",
+        #     }],
+        #     # remappings=remappings,
+        #     # arguments=[burger_urdf],
+        # )
+        # )
+            
+        
+        
+        # robot description
+        # included_launch = (
+        #     IncludeLaunchDescription(
+        #         PythonLaunchDescriptionSource(
+        #             os.path.join(launch_file_dir, 'robot_state_publisher.launch.py')
+        #         ),
+        #         launch_arguments={
+        #             'use_sim_time': use_sim_time,
+        #             'robot_namespace': f'agent_{i}',
+        #             'TURTLEBOT3_MODEL': robot_name,
+        #             # 'new_background_r': TextSubstitution(text=str(colors['background_r']))
+        #         }.items()
+        # ))
+
+        # launch_description.append(included_launch)
+
+
         # turtlebot spawner
         launch_description.append(Node(
-            package='choirbot_examples', executable='choirbot_turtlebot_' + TURTLEBOT3_MODEL + '_spawner', output='screen',
-            parameters=[{'namespace': 'agent_{}'.format(i), 'position': position}]))
+            package='choirbot_examples', executable='choirbot_turtlebot3_spawner', output='screen',
+            parameters=[{
+                'namespace': 'agent_{}'.format(i),
+                'position': position,
+                'TURTLEBOT3_MODEL': robot_name,
+            }]
+        ))
     
-    # include launcher for gazebo
-    gazebo_launcher = os.path.join(get_package_share_directory('choirbot_examples'), 'gazebo.launch.py')
-    launch_description.append(IncludeLaunchDescription(PythonLaunchDescriptionSource(gazebo_launcher)))
+    # include   er for gazebo
+    gazebo_launcher = os.path.join(get_package_share_directory('choirbot_examples'), 'launch', 'gazebo_2.launch.py')
+
+                
+    launch_description.append(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                gazebo_launcher
+    )))
     
     # include delayed robot executables
     timer_action = TimerAction(period=10.0, actions=[LaunchDescription(robot_launch)])

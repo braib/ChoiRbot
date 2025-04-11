@@ -19,7 +19,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name, glob('launch/*.launch.py')),
+        # ('share/' + package_name, glob('launch/*.launch.py')),
+        ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+
         ('share/' + package_name, glob('resource/*.rviz')),
         # ('share/' + package_name, glob('models/turtlebot3_burger/*.sdf')),
         # ('share/' + package_name, glob('models/turtlebot3_waffle/*.sdf')),
@@ -29,7 +31,14 @@ setup(
         ('share/' + package_name + '/models/turtlebot3_burger_cam', glob('models/turtlebot3_burger_cam/*.sdf')),
         ('share/' + package_name + '/models/turtlebot3_waffle_pi', glob('models/turtlebot3_waffle_pi/*.sdf')),
 
+        ('share/' + package_name + '/models/turtlebot3_common/meshes/bases', glob('models/turtlebot3_common/meshes/bases/*.stl')),
+        ('share/' + package_name + '/models/turtlebot3_common/meshes/sensors', glob('models/turtlebot3_common/meshes/sensors/*.dae')),
+        ('share/' + package_name + '/models/turtlebot3_common/meshes/sensors', glob('models/turtlebot3_common/meshes/sensors/*.stl')),
+        ('share/' + package_name + '/models/turtlebot3_common/meshes/wheels', glob('models/turtlebot3_common/meshes/wheels/*.stl')),
+        ('share/' + package_name + '/models/turtlebot3_common/meshes', glob('models/turtlebot3_common/meshes/*.dae')),
 
+        ('share/' + package_name + '/urdf', glob('urdf/*.urdf')),
+        ('share/' + package_name + '/worlds', glob('worlds/*.world')),
 
 
     ],
@@ -48,6 +57,8 @@ setup(
             'choirbot_turtlebot_spawner = choirbot_examples.turtlebot_spawner:main',
             'choirbot_turtlebot_burger_cam_spawner = choirbot_examples.turtlebot_burger_cam_spawner:main',
             'choirbot_turtlebot_waffle_spawner = choirbot_examples.turtlebot_waffle_spawner:main',
+            'choirbot_turtlebot3_spawner = choirbot_examples.turtlebot3_spawner:main',
+            
 
         ],
     },
