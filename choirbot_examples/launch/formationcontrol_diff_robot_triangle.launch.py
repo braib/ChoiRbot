@@ -6,10 +6,10 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import numpy as np
 import sys
-import argparse
+# import argparse
 import os
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import PathJoinSubstitution, TextSubstitution
+# from launch.actions import DeclareLaunchArgument
+# from launch.substitutions import PathJoinSubstitution, TextSubstitution
 def generate_launch_description():
 
     launch_file_dir = os.path.join(get_package_share_directory('choirbot_examples'), 'launch')
@@ -20,7 +20,7 @@ def generate_launch_description():
     # TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
     # TURTLEBOT3_MODEL = 'burger_cam'
 
-    L=3
+    L=2
     seed=5
     for arg in sys.argv:
         if arg.startswith("L:="):
@@ -55,8 +55,8 @@ def generate_launch_description():
     # generate coordinates of hexagon with center in the origin
 
     P = np.array([
-        [0, 0, 0],
-        [L, 0, 0],
+        [0,   0,                0],
+        [L,   0,                0],
         [L/2, np.sqrt(3)/2 * L, 0]
     ])
 
@@ -64,6 +64,7 @@ def generate_launch_description():
     
     # initial positions have a perturbation of at most L/3
     P += np.random.uniform(-L/3, L/3, (N,3))
+    print("Spawning Position of robots: ", P)
 
     # initialize launch description
     robot_launch = []       # launched after 10 sec (to let Gazebo open)
@@ -176,15 +177,13 @@ def generate_launch_description():
         ))
     
     # include   er for gazebo
-    gazebo_launcher = os.path.join(get_package_share_directory('choirbot_examples'), 'launch', 'gazebo_2.launch.py')
+    gazebo_launcher = os.path.join(launch_file_dir, 'gazebo_2.launch.py')
 
-                
+
     launch_description.append(
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                gazebo_launcher
-    )))
-    
+            PythonLaunchDescriptionSource(gazebo_launcher)
+    ))    
     # include delayed robot executables
     timer_action = TimerAction(period=10.0, actions=[LaunchDescription(robot_launch)])
     launch_description.append(timer_action)

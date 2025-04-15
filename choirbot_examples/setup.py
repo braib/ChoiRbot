@@ -58,6 +58,8 @@ setup(
             'choirbot_turtlebot_burger_cam_spawner = choirbot_examples.turtlebot_burger_cam_spawner:main',
             'choirbot_turtlebot_waffle_spawner = choirbot_examples.turtlebot_waffle_spawner:main',
             'choirbot_turtlebot3_spawner = choirbot_examples.turtlebot3_spawner:main',
+            'robot_mover = choirbot_examples.robot_move_tester:main',
+            'joynode = choirbot_examples.joynode:main',
             
 
         ],
