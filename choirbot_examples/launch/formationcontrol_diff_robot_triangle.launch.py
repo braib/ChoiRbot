@@ -86,24 +86,24 @@ def generate_launch_description():
         position = P[i, :].tolist()
 
         # guidance
-        robot_launch.append(Node(
-            package='choirbot_examples', executable='choirbot_formationcontrol_guidance', output='screen',
-            namespace='agent_{}'.format(i),
-            parameters=[{
-                'agent_id': i,
-                'N': N,
-                'in_neigh': in_neighbors,
-                'out_neigh': out_neighbors,
-                'weights': weights
-            }]))
+        # robot_launch.append(Node(
+        #     package='choirbot_examples', executable='choirbot_formationcontrol_guidance', output='screen',
+        #     namespace='agent_{}'.format(i),
+        #     parameters=[{
+        #         'agent_id': i,
+        #         'N': N,
+        #         'in_neigh': in_neighbors,
+        #         'out_neigh': out_neighbors,
+        #         'weights': weights
+        #     }]))
         
-        # controller
-        robot_launch.append(Node(
-            package='choirbot_examples', executable='choirbot_formationcontrol_controller', output='screen',
-            namespace='agent_{}'.format(i),
-            parameters=[{
-                'agent_id': i
-            }]))
+        # # controller
+        # robot_launch.append(Node(
+        #     package='choirbot_examples', executable='choirbot_formationcontrol_controller', output='screen',
+        #     namespace='agent_{}'.format(i),
+        #     parameters=[{
+        #         'agent_id': i
+        #     }]))
 
 
 

@@ -60,7 +60,7 @@ setup(
             'choirbot_turtlebot3_spawner = choirbot_examples.turtlebot3_spawner:main',
             'robot_mover = choirbot_examples.robot_move_tester:main',
             'joynode = choirbot_examples.joynode:main',
-            
+            'gotopose = choirbot_examples.go_to_pose:main',
 
         ],
     },
