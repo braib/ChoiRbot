@@ -60,6 +60,7 @@ def generate_launch_description():
         [L/2, np.sqrt(3)/2 * L, 0]
     ])
 
+    goal_center = [5.0, 0.0, 0.0]
 
     # initial positions have a perturbation of at most L/3
     P += np.random.uniform(-L/3, L/3, (N,3))
@@ -95,7 +96,8 @@ def generate_launch_description():
                 'N': N,
                 'in_neigh': in_neighbors,
                 'out_neigh': out_neighbors,
-                'weights': weights
+                'weights': weights,
+                'goal_center': goal_center
             }]))
         
         # controller
@@ -107,64 +109,6 @@ def generate_launch_description():
             }]))
 
 
-
-        #robot state publisher
-        # urdf_file_name = 'turtlebot3_' + robot_name + '.urdf'
-        
-        # urdf_path = os.path.join(get_package_share_directory('choirbot_examples'), 'urdf', urdf_file_name)
-
-        # with open(urdf_path, 'r') as infp:
-        #     robot_desc = infp.read()
-
-        # robot_launch.append(Node(
-        #     package='robot_state_publisher',
-        #     executable='robot_state_publisher',
-        #     output='screen',
-        #     namespace='agent_{}'.format(i),
-        #     parameters=[{
-        #         'use_sim_time': use_sim_time,
-        #         'robot_description': robot_desc,
-        #         # 'robot_namespace': f'agent_{i}',
-        #         'frame_prefix': f'agent_{i}/'
-        #     }],
-        #     remappings=remappings,
-        #     # arguments=[urdf_path],
-        # ))
-        
-
-
-        # robot_launch.append(Node(
-        #     package="robot_state_publisher",
-        #     namespace='agent_{}'.format(i),
-        #     executable="robot_state_publisher",
-        #     output="screen",
-        #     parameters=[{
-        #         "use_sim_time": use_sim_time, 
-        #         "robot_description": robot_desc,
-        #         "frame_prefix": f"agent_{i}/",
-        #     }],
-        #     # remappings=remappings,
-        #     # arguments=[burger_urdf],
-        # )
-        # )
-            
-        
-        
-        # robot description
-        # included_launch = (
-        #     IncludeLaunchDescription(
-        #         PythonLaunchDescriptionSource(
-        #             os.path.join(launch_file_dir, 'robot_state_publisher.launch.py')
-        #         ),
-        #         launch_arguments={
-        #             'use_sim_time': use_sim_time,
-        #             'robot_namespace': f'agent_{i}',
-        #             'TURTLEBOT3_MODEL': robot_name,
-        #             # 'new_background_r': TextSubstitution(text=str(colors['background_r']))
-        #         }.items()
-        # ))
-
-        # launch_description.append(included_launch)
 
 
         # turtlebot spawner
