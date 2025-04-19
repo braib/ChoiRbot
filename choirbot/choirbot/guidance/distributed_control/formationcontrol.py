@@ -25,30 +25,18 @@ class FormationControlGuidance(DistributedControlGuidance):
         return np.array(self.offset_in_formation)
 
 
-    # def evaluate_input(self, neigh_data):
-    #     u = np.zeros(3)
-    #     for ii, pos_ii in neigh_data.items():
-    #         error = pos_ii.position - self.current_pose.position
-    #         u += self.formation_control_gain*(norm(error)**2- self.weights[ii]**2) * error
-    #     return u
 
     def evaluate_input(self, neigh_data):
         u = np.zeros(3)
         formation_error = 0.0
-
         for ii, pos_ii in neigh_data.items():
             error = pos_ii.position - self.current_pose.position
             dist_sq = np.dot(error, error)
-            desired_dist_sq = self.weights[ii] ** 2
-            formation_error += abs(dist_sq - desired_dist_sq)
-            u += self.formation_control_gain * (dist_sq - desired_dist_sq) * error
-
-        # Check if formation is achieved
-        if formation_error < 0.01:  # small threshold
-            self.get_logger().info("Formation achieved. Stopping.")
+            desired_sq = self.weights[ii] ** 2
+            formation_error += abs(dist_sq - desired_sq)
+            u[:2] += self.formation_control_gain * (dist_sq - desired_sq) * error[:2]
+        if formation_error < 0.01:
             self.formation_achieved = True
-            return np.zeros(3)  # stop moving
-        else:
-            self.formation_achieved = False
-            return u
+            return np.zeros(3)
+        return u
 
