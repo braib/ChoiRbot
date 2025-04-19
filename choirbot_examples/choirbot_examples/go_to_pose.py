@@ -15,16 +15,13 @@ class GoToPose(Node):
     def __init__(self):
         super().__init__('go_to_pose_controller')
 
-        # Parameters for namespace and goal
         self.declare_parameter("namespace", "")
         self.declare_parameter("goal_position", [0.0, 0.0, 0.0])
         self.declare_parameter("goal_orientation", [0.0, 0.0, 0.0, 1.0])
 
-        # Get and process namespace
         ns = self.get_parameter("namespace").value.strip('/')
         self.ns_prefix = f'/{ns}' if ns else ''
 
-        # Get and process goal pose
         goal_position = self.get_parameter("goal_position").value
         goal_orientation = self.get_parameter("goal_orientation").value
 
@@ -32,17 +29,17 @@ class GoToPose(Node):
         self.goal_y = goal_position[1]
         self.goal_theta = quaternion_to_yaw(*goal_orientation)
 
-        # Robot state
         self.pose_received = False
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_theta = 0.0
 
-        # Publishers and subscribers with namespace
+        # Previous twist values for low-pass filtering
+        self.prev_linear_x = 0.0
+        self.prev_angular_z = 0.0
+
         self.vel_pub = self.create_publisher(Twist, f'{self.ns_prefix}/cmd_vel', 10)
         self.odom_sub = self.create_subscription(Odometry, f'{self.ns_prefix}/odom', self.odom_callback, 10)
-
-        # Timer for control loop
         self.timer = self.create_timer(0.05, self.control_loop)  # 20Hz
 
         self.get_logger().info(f"[{ns}] Going to goal: x={self.goal_x:.3f}, y={self.goal_y:.3f}, yaw={math.degrees(self.goal_theta):.2f}°")
@@ -54,6 +51,10 @@ class GoToPose(Node):
         self.current_theta = quaternion_to_yaw(q.x, q.y, q.z, q.w)
         self.pose_received = True
 
+    def smooth_command(self, new, prev, alpha=0.6):
+        """Low-pass filter for velocity smoothing"""
+        return alpha * prev + (1 - alpha) * new
+
     def control_loop(self):
         if not self.pose_received:
             return
@@ -64,25 +65,52 @@ class GoToPose(Node):
 
         angle_to_goal = math.atan2(dy, dx)
         angle_error = angle_to_goal - self.current_theta
-        angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # normalize to [-pi, pi]
+        angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # normalize
 
         twist = Twist()
 
+        # Movement logic
         if distance > 0.05:
             if abs(angle_error) > 0.1:
-                twist.angular.z = 1.0 * angle_error
+                # Turn in place
+                twist.linear.x = 0.0
+                twist.angular.z = max(min(0.4 * angle_error, 0.4), -0.4)
             else:
-                twist.linear.x = 0.5 * distance
-                twist.angular.z = 0.5 * angle_error
+                # Move forward and steer
+                linear_gain = 0.3 if distance > 0.5 else 0.1
+                angular_gain = 0.5 if distance > 0.5 else 0.3
+                twist.linear.x = min(0.2, linear_gain * distance)
+                twist.angular.z = max(min(angular_gain * angle_error, 0.4), -0.4)
         else:
+            # Reached position, now align heading
+            # heading_error = self.goal_theta - self.current_theta
+            # heading_error = math.atan2(math.sin(heading_error), math.cos(heading_error))
+            # if abs(heading_error) > 0.05:
+            #     twist.linear.x = 0.0
+            #     twist.angular.z = max(min(0.3 * heading_error, 0.3), -0.3)
+            # else:
+            #     self.get_logger().info(f"[{self.ns_prefix}] Goal Reached!")
+            #     twist.linear.x = 0.0
+            #     twist.angular.z = 0.0
             heading_error = self.goal_theta - self.current_theta
             heading_error = math.atan2(math.sin(heading_error), math.cos(heading_error))
-            if abs(heading_error) > 0.05:
-                twist.angular.z = 0.5 * heading_error
+
+            if abs(heading_error) > 0.01:
+                twist.linear.x = 0.0
+                twist.angular.z = max(min(0.3 * heading_error, 0.3), -0.3)
             else:
-                self.get_logger().info(f"[{self.ns_prefix}] Goal Reached!")
                 twist.linear.x = 0.0
                 twist.angular.z = 0.0
+                if not hasattr(self, "goal_logged"):
+                    self.get_logger().info(f"[{self.ns_prefix}] Goal Reached! Final heading aligned.")
+                    self.goal_logged = True
+
+
+        # Smooth final command
+        twist.linear.x = self.smooth_command(twist.linear.x, self.prev_linear_x)
+        twist.angular.z = self.smooth_command(twist.angular.z, self.prev_angular_z)
+        self.prev_linear_x = twist.linear.x
+        self.prev_angular_z = twist.angular.z
 
         self.vel_pub.publish(twist)
 

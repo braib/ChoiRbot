@@ -3,74 +3,52 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
+import math
 
 
-class MoveForwardNode(Node):
+class MoveInCircleNode(Node):
     def __init__(self):
-        super().__init__('move_forward_node')
+        super().__init__('move_in_circle_node')
 
-        # Get distance parameter (passed via launch)
-        self.declare_parameter('distance', 1.0)
-        self.target_distance = self.get_parameter('distance').get_parameter_value().double_value
+        # Declare parameters
+        self.declare_parameter('diameter', 1.0)
+        self.declare_parameter('namespace', '')
 
-        # Namespace-aware topic resolution
-        self.odom_topic = self.resolve_topic_name('odom')
+        self.diameter = self.get_parameter('diameter').get_parameter_value().double_value
+        self.namespace = self.get_parameter('namespace').get_parameter_value().string_value
+
+        # Compute radius and circle completion time
+        self.radius = self.diameter / 2.0
+        self.linear_speed = 0.2  # m/s
+        self.angular_speed = self.linear_speed / self.radius  # rad/s
+
+        # ROS 2 publisher
         self.cmd_vel_topic = self.resolve_topic_name('cmd_vel')
-
-        # ROS 2 pub/sub
-        self.subscription = self.create_subscription(
-            Odometry,
-            self.odom_topic,
-            self.odom_callback,
-            10
-        )
         self.publisher = self.create_publisher(Twist, self.cmd_vel_topic, 10)
 
-        # Internal state
-        self.initial_pose_recorded = False
-        self.start_x = 0.0
-        self.current_x = 0.0
-        self.moving = True
-        self.speed = 0.2  # m/s
-
-        # Periodic command publishing
+        # Timer to publish velocity
         self.timer = self.create_timer(0.1, self.publish_cmd)
 
-        # Log status
-        self.get_logger().info(f"[{self.get_namespace()}] Target distance: {self.target_distance:.2f} meters")
-        self.get_logger().info(f"[{self.get_namespace()}] Subscribing to: {self.odom_topic}")
-        self.get_logger().info(f"[{self.get_namespace()}] Publishing to: {self.cmd_vel_topic}")
+        # Logging
+        self.get_logger().info(f"[{self.namespace}] Moving in circle of diameter {self.diameter:.2f} m")
+        self.get_logger().info(f"[{self.namespace}] Publishing Twist to: {self.cmd_vel_topic}")
 
     def resolve_topic_name(self, base_name: str):
-        """Auto-prefix topics with namespace, if not root ('/')"""
-        ns = self.get_namespace()
-        if ns == '/':
-            return f'/{base_name}'
-        return f'{ns}/{base_name}'
-
-    def odom_callback(self, msg):
-        self.current_x = msg.pose.pose.position.x
-
-        if not self.initial_pose_recorded:
-            self.start_x = self.current_x
-            self.initial_pose_recorded = True
-            self.get_logger().info(f"[{self.get_namespace()}] Starting X: {self.start_x:.2f}")
-
-        distance_moved = self.current_x - self.start_x
-        if distance_moved >= self.target_distance:
-            self.moving = False
-            self.get_logger().info(f"[{self.get_namespace()}] Moved {distance_moved:.2f}m. Stopping.")
+        """Prefix topic with namespace if provided"""
+        if self.namespace:
+            return f'/{self.namespace}/{base_name}'
+        return f'/{base_name}'
 
     def publish_cmd(self):
         cmd = Twist()
-        cmd.linear.x = self.speed if self.moving else 0.0
+        cmd.linear.x = self.linear_speed
+        cmd.angular.z = self.angular_speed
         self.publisher.publish(cmd)
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MoveForwardNode()
+    node = MoveInCircleNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

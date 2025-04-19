@@ -54,42 +54,37 @@ def generate_launch_description():
 
     # generate coordinates of hexagon with center in the origin
 
-    # P = np.array([
-    #     [0,   0,                0],
-    #     [L,   0,                0],
-    #     [L/2, np.sqrt(3)/2 * L, 0]
-    # ])
-
     P = np.array([
-        [0,   0, 0],
-        [L,   0, 0],
-        [L/2, L, 0]
+        [0,   0,                0],
+        [L,   0,                0],
+        [L/2, np.sqrt(3)/2 * L, 0]
     ])
 
 
     # initial positions have a perturbation of at most L/3
-    # P += np.random.uniform(-L/3, L/3, (N,3))
+    P += np.random.uniform(-L/3, L/3, (N,3))
     
     print("Spawning Position of robots: ", P)
 
     # initialize launch description
     robot_launch = []       # launched after 10 sec (to let Gazebo open)
-    # launch_description = [] # launched immediately (will contain robot_launch)
+    launch_description = [] # launched immediately (will contain robot_launch)
 
-    # robot_models = ['burger_cam', 'burger_cam', 'waffle']
+    robot_models = ['burger_cam', 'burger_cam', 'waffle']
     # remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
 
     # included_launches = []
     # add executables for each robot
     for i in range(N):
 
-        # robot_name = robot_models[i]
+        robot_name = robot_models[i]
 
 
         in_neighbors  = np.nonzero(Adj[:, i])[0].tolist()
         out_neighbors = np.nonzero(Adj[i, :])[0].tolist()
         weights = W[i,:].tolist()
         position = P[i, :].tolist()
+
 
         # guidance
         robot_launch.append(Node(
@@ -173,26 +168,38 @@ def generate_launch_description():
 
 
         # turtlebot spawner
-        # launch_description.append(Node(
-        #     package='choirbot_examples', executable='choirbot_turtlebot3_spawner', output='screen',
-        #     parameters=[{
-        #         'namespace': 'agent_{}'.format(i),
-        #         'position': position,
-        #         'TURTLEBOT3_MODEL': robot_name,
-        #     }]
-        # ))
+        launch_description.append(Node(
+            package='choirbot_examples', executable='choirbot_turtlebot3_spawner', output='screen',
+            parameters=[{
+                'namespace': 'agent_{}'.format(i),
+                'position': position,
+                'TURTLEBOT3_MODEL': robot_name,
+            }]
+        ))
     
+    # # i = 0
+    # robot_mover = []
+    # robot_mover.append(Node(
+    #     package='choirbot_examples', executable='robot_draw_circle', output='screen',
+    #     # namespace='agent_{}'.format(i),
+    #     # parameters=[{
+    #     #     'diameter': 1.0,
+    #     # }]
+    # ))
+
+
     # include   er for gazebo
-    # gazebo_launcher = os.path.join(launch_file_dir, 'gazebo_2.launch.py')
+    gazebo_launcher = os.path.join(launch_file_dir, 'gazebo_2.launch.py')
 
 
-    # launch_description.append(
-    #     IncludeLaunchDescription(
-    #         PythonLaunchDescriptionSource(gazebo_launcher)
-    # ))    
-    # # include delayed robot executables
-    # timer_action = TimerAction(period=10.0, actions=[LaunchDescription(robot_launch)])
-    # launch_description.append(timer_action)
+    launch_description.append(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(gazebo_launcher)
+    ))    
+    # include delayed robot executables
+    timer_action = TimerAction(period=10.0, actions=[LaunchDescription(robot_launch)])
+    launch_description.append(timer_action)
+    # timer_action2 = TimerAction(period=15.0, actions=[LaunchDescription(robot_mover)])
+    # launch_description.append(timer_action2)
 
-    # return LaunchDescription(launch_description)
-    return LaunchDescription(robot_launch)
+    return LaunchDescription(launch_description)
