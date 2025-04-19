@@ -5,26 +5,19 @@ from .distributed_control import DistributedControlGuidance
 
 class FormationControlGuidance(DistributedControlGuidance):
     """
-    Formation Control 
+    Formation Control Guidance
 
-    Implements a formation control law for systems....
+    Extends DistributedControlGuidance to perform precise formation and cooperative translation.
     """
 
-    def __init__(self, update_frequency: float, gain: float=0.1, pose_handler: str=None, pose_topic: str=None, input_topic = 'velocity'):
-        """
-        Init method
-        """
+    def __init__(self, update_frequency: float, gain: float = 0.1, pose_handler: str = None, pose_topic: str = None, input_topic='velocity'):
         super().__init__(update_frequency, pose_handler, pose_topic, input_topic)
         self.formation_control_gain = gain
         self.weights = self.get_parameter('weights').value
         self.offset_in_formation = self.get_parameter_or('formation_offset', np.zeros(3))
 
-    
-    
     def get_offset_in_formation(self):
         return np.array(self.offset_in_formation)
-
-
 
     def evaluate_input(self, neigh_data):
         u = np.zeros(3)
@@ -35,8 +28,8 @@ class FormationControlGuidance(DistributedControlGuidance):
             desired_sq = self.weights[ii] ** 2
             formation_error += abs(dist_sq - desired_sq)
             u[:2] += self.formation_control_gain * (dist_sq - desired_sq) * error[:2]
+
         if formation_error < 0.01:
             self.formation_achieved = True
             return np.zeros(3)
         return u
-

@@ -81,16 +81,16 @@ class DistributedControlGuidance(Guidance):
 
         # Maintain formation + move together
         u_formation = self.evaluate_input(data)
-        v = np.clip(np.linalg.norm(remaining), 0.05, 0.2)
         direction = remaining / np.linalg.norm(remaining)
-        u_translate = direction * v
+        speed = np.clip(np.linalg.norm(remaining), 0.05, 0.2)
+        u_translate = direction * speed
 
         u = np.zeros(3)
         u[:2] = u_formation[:2] + u_translate[:2]
         self.send_input(u)
 
     def evaluate_input(self, neigh_data):
-        return NotImplementedError
+        raise NotImplementedError
 
     def get_yaw(self):
         quat = self.current_pose.orientation
